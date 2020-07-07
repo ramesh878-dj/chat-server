@@ -25,7 +25,7 @@ SECRET_KEY = '_t!%o8wr1_a!998sg!ik@$bs3h##gn7uxstj3yakbms3xdf^)8'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['ramchatapp.herokuapp.com']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

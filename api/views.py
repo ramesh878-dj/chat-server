@@ -96,46 +96,12 @@ class AdddataViewSet(viewsets.ModelViewSet):
 #         django_logout(request)
 #         return Response(status=204)
 
-@api_view(['GET', 'POST'])
-def users(request):
-    if request.method == 'POST':
-        data = JSONParser().parse(request)
-        print(data)
-        serializer = UserSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors)
-
-@api_view(['GET', 'POST'])
-def userslist(request):
-    if request.method == 'GET':
-        alluser = User.objects.all()
-        serializer= UserSerializer(alluser, many=True)
-        return JsonResponse(serializer.data, safe=False)
-
-@api_view(['GET', 'POST'])
-def login(request):
-    if request.method == 'POST':
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        django_login(request, user)
-        token, created = Token.objects.get_or_create(user=user)
-        return JsonResponse({"token":token.key, "logged_in":True, "username":request.data['username']}, status=200)
-
 # class CsrfExcemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
 #         return # none
 
 # class Logout(APIView):
 #     authentication_classes = (CsrfExcemptSessionAuthentication, BasicAuthentication)
-    
-@csrf_exempt
-def logout(request):
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
-    django_logout(request)
-    return JsonResponse({"logout":"logout"},status=200)
 
 class CheckUserLoggedIn(viewsets.ViewSet):
     authentication_classes = (TokenAuthentication, SessionAuthentication)
@@ -238,9 +204,8 @@ class Like(viewsets.ViewSet):
         serializer= LikesSerializer(countdata, many=True)
         return Response(serializer.data, status=200)
 
-@csrf_exempt
-def addlike(request):
-    if request.method=="POST":
+    @action(methods = ['POST'], detail=False)
+    def post(self, request):
         last_id= LikeTable.objects.get(id=1)
         count= last_id.likeCount
         count = count+1
@@ -249,3 +214,39 @@ def addlike(request):
         serializer= LikesSerializer(countdata, many=True)
         print('yes')
         return JsonResponse(serializer.data, safe=False)
+
+@api_view(['POST'])
+def users(request):
+    if request.method == 'POST':
+        data = JSONParser().parse(request)
+        print(data)
+        serializer = UserSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors)
+
+@api_view(['GET', 'POST'])
+def userslist(request):
+    if request.method == 'GET':
+        alluser = User.objects.all()
+        serializer= UserSerializer(alluser, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+@api_view(['POST'])
+def login(request):
+    if request.method == 'POST':
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            django_login(request, user)
+            token, created = Token.objects.get_or_create(user=user)
+            return JsonResponse({"token":token.key, "logged_in":True, "username":request.data['username']}, status=200)
+        else:
+            return JsonResponse({"error":"Wrong username or password",}, status=401)
+   
+@csrf_exempt
+def logout(request):
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    django_logout(request)
+    return JsonResponse({"logout":"logout"},status=200)

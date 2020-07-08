@@ -20,6 +20,5 @@ urlpatterns = [
     path('user/', users),
     path('userlist/', userslist),
     path('login/', login),
-    path('givelike/', addlike),
     path('logout/', logout),
 ]
